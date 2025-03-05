@@ -20,6 +20,5 @@ app.use("/api/bookings", bookingRouter);
 
 app.use(globalErrorHandlingMiddleware);
 
-
 // Define the port to run the server
 app.listen(3000, () => console.log("server listening on port 3000"));
