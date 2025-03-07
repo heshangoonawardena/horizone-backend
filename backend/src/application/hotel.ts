@@ -47,8 +47,6 @@ export const createHotel = async (
       !newHotel.name ||
       !newHotel.location ||
       !newHotel.image ||
-      !newHotel.rating ||
-      !newHotel.reviews ||
       !newHotel.price
     ) {
       throw new ValidationError("Invalid hotel data");
@@ -58,9 +56,10 @@ export const createHotel = async (
       name: newHotel.name,
       location: newHotel.location,
       image: newHotel.image,
-      rating: parseInt(newHotel.rating),
-      reviews: parseInt(newHotel.reviews),
+      rating: newHotel.rating ? parseInt(newHotel.rating) : null,
+      reviews: newHotel.reviews ? parseInt(newHotel.reviews) : null,
       price: parseInt(newHotel.price),
+      description: newHotel?.description,
     });
     res.status(201).send();
     return;
@@ -103,14 +102,16 @@ export const updateHotel = async (
       !updatedHotel.name ||
       !updatedHotel.location ||
       !updatedHotel.image ||
-      !updatedHotel.rating ||
-      !updatedHotel.reviews ||
       !updatedHotel.price
     ) {
       throw new ValidationError("Invalid hotel data");
     }
 
-    await Hotel.findByIdAndUpdate(hotelId, updatedHotel);
+    await Hotel.findByIdAndUpdate(hotelId, {
+      ...updatedHotel,
+      rating: updatedHotel.rating ? parseInt(updatedHotel.rating) : null,
+      reviews: updatedHotel.reviews ? parseInt(updatedHotel.reviews) : null,
+    });
 
     res.status(200).send();
     return;
