@@ -6,14 +6,24 @@ const globalErrorHandlingMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  // console.log(error);
   if (error.name === "NotFoundError") {
-    return res.status(404).json({ message: error.message });
+    res.status(404).json({ message: error.message });
+    return;
+  }
+  if (error.name === "UnAuthorizedError") {
+    res.status(401).json({ message: error.message });
+    return;
+  }
+  if (error.name === "ForbiddenError") {
+    res.status(403).json({ message: error.message });
+    return;
   }
   if (error.name === "ValidationError") {
-    return res.status(400).json({ message: error.message });
+    res.status(400).json({ message: error.message });
+    return;
   }
-  return res.status(500).json({ message: "Internal server error" }); 
+  res.status(500).json({ message: "Internal server error" });
+  return;
 };
 
 export default globalErrorHandlingMiddleware;
