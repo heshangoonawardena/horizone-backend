@@ -5,6 +5,7 @@ import NotFoundError from "../domain/errors/not-found-error";
 import ValidationError from "../domain/errors/validation-error";
 import Booking from "../infrastructure/schemas/Booking";
 import { log } from "console";
+import Hotel from "../infrastructure/schemas/Hotel";
 
 export const createBooking = async (
 	req: ExpressRequestWithAuth,
@@ -77,6 +78,7 @@ export const getBookingById = async (
 	}
 };
 
+
 export const getAllBookingsForHotelId = async (
 	req: Request,
 	res: Response,
@@ -110,6 +112,36 @@ export const getAllBookingsForHotelId = async (
 			})
 		);
 		res.status(200).json(bookingWithUser);
+		return;
+	} catch (error) {
+		next(error);
+	}
+};
+
+export const getAllBookingsForUserId = async (
+	req: ExpressRequestWithAuth,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const userId = req.auth.userId;
+		const bookings = await Booking.find({ userId });
+		const bookingsWithHotelDetails = await Promise.all(
+			bookings.map(async (booking) => {
+				const hotel = await Hotel.findById(booking.hotelId);
+				return {
+					...booking.toObject(),
+					hotel: {
+						id: hotel?._id,
+						name: hotel?.name,
+						location: hotel?.location,
+						image: hotel?.image,
+						description: hotel?.description,
+					},
+				};
+			})
+		);
+		res.status(200).json(bookingsWithHotelDetails);
 		return;
 	} catch (error) {
 		next(error);
