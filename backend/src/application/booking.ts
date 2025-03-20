@@ -130,7 +130,6 @@ export const deleteBooking = async (
 		}
 
 		await Booking.findByIdAndDelete(bookingId);
-		console.log(booking);
 
 		res.status(200).send();
 		return;
