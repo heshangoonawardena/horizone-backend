@@ -47,7 +47,6 @@ export const createHotel = async (
 		if (!newHotel?.success) {
 			throw new ValidationError(newHotel?.error?.issues[0].message);
 		}
-		// const user = { userId: "user_2tyPqEaTTN4ex0V1xV7VgRyt7yX" };
 		const user = req?.auth;
 
 		await Hotel.create({
@@ -124,7 +123,6 @@ export const getHotelsByOwnerId = async (
 	next: NextFunction
 ) => {
 	try {
-		// const ownerId = "user_2tyPqEaTTN4ex0V1xV7VgRyt7yX";
 		const ownerId = req.auth.userId;
 		const hotels = await Hotel.find({ ownerId });
 		res.status(200).json(hotels);
