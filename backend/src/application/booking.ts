@@ -199,7 +199,34 @@ export const deleteBooking = async (
 
 		await Booking.findByIdAndDelete(bookingId);
 
-		res.status(200).send();
+		res.status(204).send();
+		return;
+	} catch (error) {
+		next(error);
+	}
+};
+
+export const cancelBooking = async (
+	req: ExpressRequestWithAuth,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const bookingId = req.params.id;
+		const booking = await Booking.findById(bookingId);
+
+		if (!booking) {
+			throw new NotFoundError("Booking not found");
+		}
+
+		if (booking.userId !== req.auth.userId) {
+			return res.status(403).json({ message: "Unauthorized" });
+		}
+
+		booking.status = "cancelled";
+		await booking.save();
+
+		res.status(200).json(booking);
 		return;
 	} catch (error) {
 		next(error);

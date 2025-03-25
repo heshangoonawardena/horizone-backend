@@ -7,6 +7,7 @@ import {
 	getBookingById,
 	getAllBookingsForUserId,
 	getAllBookingsForOwnerId,
+	cancelBooking,
 } from "../application/booking";
 import { isAuthenticated } from "./middlewares/authentication-middleware";
 
@@ -18,7 +19,11 @@ bookingRouter
 	.get(getAllBookings);
 bookingRouter.route("/user").get(getAllBookingsForUserId);
 bookingRouter.route("/owner").get(getAllBookingsForOwnerId);
-bookingRouter.route("/:id").get(getBookingById).delete(deleteBooking);
+bookingRouter
+	.route("/:id")
+	.get(getBookingById)
+	.delete(deleteBooking)
+	.patch(isAuthenticated, cancelBooking);
 bookingRouter.route("/hotels/:hotelId").get(getAllBookingsForHotelId);
 
 export default bookingRouter;
