@@ -4,7 +4,6 @@ import { createBookingDTO } from "../domain/dtos/booking";
 import NotFoundError from "../domain/errors/not-found-error";
 import ValidationError from "../domain/errors/validation-error";
 import Booking from "../infrastructure/schemas/Booking";
-import { log } from "console";
 import Hotel from "../infrastructure/schemas/Hotel";
 
 export const createBooking = async (
@@ -13,10 +12,8 @@ export const createBooking = async (
 	next: NextFunction
 ) => {
 	try {
-		// add validation here
 		const newBooking = createBookingDTO.safeParse(req.body);
 
-		// add validation here
 		if (!newBooking?.success) {
 			throw new ValidationError(newBooking?.error?.issues[0].message);
 		}
@@ -124,8 +121,8 @@ export const getAllBookingsForUserId = async (
 	next: NextFunction
 ) => {
 	try {
-		// const userId = req.auth.userId;
-		const userId = "user_2tyPqEaTTN4ex0V1xV7VgRyt7yX";
+		// const userId = "user_2tyPqEaTTN4ex0V1xV7VgRyt7yX";
+		const userId = req.auth.userId;
 		const bookings = await Booking.find({ userId });
 		const bookingsWithHotelDetails = await Promise.all(
 			bookings.map(async (booking) => {
@@ -150,19 +147,20 @@ export const getAllBookingsForUserId = async (
 };
 
 export const getAllBookingsForOwnerId = async (
-	req: Request,
+	req: ExpressRequestWithAuth,
 	res: Response,
 	next: NextFunction
 ) => {
 	try {
-		// const ownerId = req.auth.userId;
-		const ownerId = "user_2tyPqEaTTN4ex0V1xV7VgRyt7yX";
+		const ownerId = req.auth.userId;
+		// const ownerId = "user_2tyPqEaTTN4ex0V1xV7VgRyt7yX";
 		const hotels = await Hotel.find({ ownerId });
 		const hotelIds = hotels.map((hotel) => hotel._id);
 		const bookings = await Booking.find({ hotelId: { $in: hotelIds } });
-		const bookingsWithHotelDetails = await Promise.all(
+		const bookingsWithDetails = await Promise.all(
 			bookings.map(async (booking) => {
 				const hotel = await Hotel.findById(booking.hotelId);
+				const user = await clerkClient?.users.getUser(booking.userId);
 				return {
 					...booking.toObject(),
 					hotel: {
@@ -172,10 +170,14 @@ export const getAllBookingsForOwnerId = async (
 						image: hotel?.image,
 						description: hotel?.description,
 					},
+					user: {
+						fullName: user.fullName,
+						email: user.emailAddresses[0].emailAddress,
+					},
 				};
 			})
 		);
-		res.status(200).json(bookingsWithHotelDetails);
+		res.status(200).json(bookingsWithDetails);
 		return;
 	} catch (error) {
 		next(error);

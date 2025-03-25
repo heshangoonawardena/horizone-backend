@@ -1,5 +1,5 @@
 import { ExpressRequestWithAuth } from "@clerk/express";
-import { NextFunction, Response, Request } from "express";
+import { NextFunction, Request, Response } from "express";
 import { createHotelDTO } from "../domain/dtos/hotel";
 import NotFoundError from "../domain/errors/not-found-error";
 import ValidationError from "../domain/errors/validation-error";
@@ -44,12 +44,11 @@ export const createHotel = async (
 	try {
 		const newHotel = createHotelDTO.safeParse(req.body);
 
-		// add validation here
 		if (!newHotel?.success) {
 			throw new ValidationError(newHotel?.error?.issues[0].message);
 		}
-		// const user = req?.auth;
-		const user = { userId: "user_2tyPqEaTTN4ex0V1xV7VgRyt7yX" };
+		// const user = { userId: "user_2tyPqEaTTN4ex0V1xV7VgRyt7yX" };
+		const user = req?.auth;
 
 		await Hotel.create({
 			ownerId: user.userId,
@@ -57,6 +56,7 @@ export const createHotel = async (
 			location: newHotel.data.location,
 			image: newHotel.data.image,
 			description: newHotel.data?.description,
+			rooms: newHotel.data.rooms,
 			roomTypes: newHotel.data.roomTypes,
 			mealPlans: newHotel.data.mealPlans,
 			amenities: newHotel.data?.amenities,
@@ -84,7 +84,7 @@ export const deleteHotel = async (
 
 		await Hotel.findByIdAndDelete(hotelId);
 
-		res.status(200).send();
+		res.status(204).send();
 		return;
 	} catch (error) {
 		next(error);
@@ -98,11 +98,9 @@ export const updateHotel = async (
 ) => {
 	try {
 		const hotelId = req.params.id;
-		// const updatedHotel = req.body;
 
 		const updatedHotel = createHotelDTO.safeParse(req.body);
 
-		// add validation here
 		if (!updatedHotel?.success) {
 			throw new ValidationError(updatedHotel?.error?.issues[0].message);
 		}
@@ -120,4 +118,18 @@ export const updateHotel = async (
 	}
 };
 
-// get hotels with it's bookings for userId from auth
+export const getHotelsByOwnerId = async (
+	req: ExpressRequestWithAuth,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		// const ownerId = "user_2tyPqEaTTN4ex0V1xV7VgRyt7yX";
+		const ownerId = req.auth.userId;
+		const hotels = await Hotel.find({ ownerId });
+		res.status(200).json(hotels);
+		return;
+	} catch (error) {
+		next(error);
+	}
+};
