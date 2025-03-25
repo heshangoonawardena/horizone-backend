@@ -28,6 +28,9 @@ const hotelSchema = new mongoose.Schema({
 	description: {
 		type: String,
 	},
+	rooms: {
+		type: Number,
+	},
 	roomTypes: [
 		{
 			type: {

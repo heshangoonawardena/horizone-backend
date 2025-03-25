@@ -7,8 +7,10 @@ import {
 	getBookingById,
 	getAllBookingsForUserId,
 	getAllBookingsForOwnerId,
+	patchBookingStatus,
 } from "../application/booking";
 import { isAuthenticated } from "./middlewares/authentication-middleware";
+import { isAdmin } from "./middlewares/authorization-middleware";
 
 const bookingRouter = express.Router();
 
@@ -16,9 +18,13 @@ bookingRouter
 	.route("/")
 	.post(isAuthenticated, createBooking)
 	.get(getAllBookings);
-bookingRouter.route("/user").get(getAllBookingsForUserId);
-bookingRouter.route("/owner").get(getAllBookingsForOwnerId);
-bookingRouter.route("/:id").get(getBookingById).delete(deleteBooking);
+bookingRouter.route("/user").get(isAuthenticated, getAllBookingsForUserId);
+bookingRouter.route("/owner").get(isAdmin, getAllBookingsForOwnerId);
+bookingRouter
+	.route("/:id")
+	.get(isAuthenticated, getBookingById)
+	.delete(isAuthenticated, deleteBooking)
+	.patch(isAuthenticated, patchBookingStatus);
 bookingRouter.route("/hotels/:hotelId").get(getAllBookingsForHotelId);
 
 export default bookingRouter;

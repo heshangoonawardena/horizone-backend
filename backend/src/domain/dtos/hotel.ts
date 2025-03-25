@@ -6,6 +6,7 @@ export const createHotelDTO = z.object({
 	location: z.string().min(1, "Location is required"),
 	image: z.string().url("Invalid image URL"),
 	description: z.string().optional(),
+	rooms: z.number().positive("Price must be greater than 0"),
 	roomTypes: z.array(
 		z.object({
 			type: z.string().min(1, "Room type is required"),
