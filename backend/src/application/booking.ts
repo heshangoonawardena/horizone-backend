@@ -124,8 +124,42 @@ export const getAllBookingsForUserId = async (
 	next: NextFunction
 ) => {
 	try {
-		const userId = req.auth.userId;
+		// const userId = req.auth.userId;
+		const userId = "user_2tyPqEaTTN4ex0V1xV7VgRyt7yX";
 		const bookings = await Booking.find({ userId });
+		const bookingsWithHotelDetails = await Promise.all(
+			bookings.map(async (booking) => {
+				const hotel = await Hotel.findById(booking.hotelId);
+				return {
+					...booking.toObject(),
+					hotel: {
+						id: hotel?._id,
+						name: hotel?.name,
+						location: hotel?.location,
+						image: hotel?.image,
+						description: hotel?.description,
+					},
+				};
+			})
+		);
+		res.status(200).json(bookingsWithHotelDetails);
+		return;
+	} catch (error) {
+		next(error);
+	}
+};
+
+export const getAllBookingsForOwnerId = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		// const ownerId = req.auth.userId;
+		const ownerId = "user_2tyPqEaTTN4ex0V1xV7VgRyt7yX";
+		const hotels = await Hotel.find({ ownerId });
+		const hotelIds = hotels.map((hotel) => hotel._id);
+		const bookings = await Booking.find({ hotelId: { $in: hotelIds } });
 		const bookingsWithHotelDetails = await Promise.all(
 			bookings.map(async (booking) => {
 				const hotel = await Hotel.findById(booking.hotelId);
