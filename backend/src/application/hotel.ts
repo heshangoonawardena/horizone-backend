@@ -119,3 +119,5 @@ export const updateHotel = async (
 		next(error);
 	}
 };
+
+// get hotels with it's bookings for userId from auth
