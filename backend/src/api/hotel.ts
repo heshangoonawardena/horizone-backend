@@ -13,12 +13,12 @@ import { isAdmin } from "./middlewares/authorization-middleware";
 const hotelsRouter = express.Router();
 
 hotelsRouter.route("/").get(getAllHotels).post(createHotel);
-hotelsRouter.route("/owner").get(getHotelsByOwnerId);
+hotelsRouter.route("/owner").get(isAdmin, getHotelsByOwnerId);
 hotelsRouter
 	.route("/:id")
 	.get(getHotelById)
-	.delete(deleteHotel)
-	.put(updateHotel);
+	.delete(isAdmin, isAuthenticated, deleteHotel)
+	.put(isAdmin, isAuthenticated, updateHotel);
 
 
 export default hotelsRouter;

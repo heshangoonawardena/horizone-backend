@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 export const createHotelDTO = z.object({
-	// ownerId: z.string().optional(),
 	name: z.string().min(1, "Hotel name is required"),
 	location: z.string().min(1, "Location is required"),
 	image: z.string().url("Invalid image URL"),
