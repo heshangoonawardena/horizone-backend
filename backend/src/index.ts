@@ -6,6 +6,7 @@ import connectDB from "./infrastructure/db";
 import bookingRouter from "./api/booking";
 import cors from "cors";
 import globalErrorHandlingMiddleware from "./api/middlewares/global-error-handling-middleware";
+import favoritesRouter from "./api/favorites";
 
 const app = express();
 app.use(clerkMiddleware());
@@ -17,8 +18,8 @@ connectDB();
 
 app.use("/api/hotels", hotelsRouter);
 app.use("/api/bookings", bookingRouter);
+app.use("/api/favorites", favoritesRouter);
 
 app.use(globalErrorHandlingMiddleware);
 
-// Define the port to run the server
 app.listen(3000, () => console.log("server listening on port 3000"));

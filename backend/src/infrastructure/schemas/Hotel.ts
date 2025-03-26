@@ -17,6 +17,7 @@ const hotelSchema = new mongoose.Schema({
 		type: Number,
 		min: 1,
 		max: 5,
+		default: 5
 	},
 	reviews: {
 		type: Number,
