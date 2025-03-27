@@ -47,7 +47,7 @@ export const getAllBookings = async (
 	next: NextFunction
 ) => {
 	try {
-		const bookings = await Booking.find({});
+		const bookings = await Booking.find({}).sort({ updatedAt: -1 });
 		res.status(200).json(bookings);
 		return;
 	} catch (error) {
@@ -82,7 +82,7 @@ export const getAllBookingsForHotelId = async (
 ) => {
 	try {
 		const hotelId = req.params.hotelId;
-		const bookings = await Booking.find({ hotelId });
+		const bookings = await Booking.find({ hotelId }).sort({ updatedAt: -1 });
 		const bookingWithUser = await Promise.all(
 			bookings.map(async (booking) => {
 				const user = await clerkClient?.users.getUser(booking.userId);
@@ -121,7 +121,7 @@ export const getAllBookingsForUserId = async (
 ) => {
 	try {
 		const userId = req.auth.userId;
-		const bookings = await Booking.find({ userId });
+		const bookings = await Booking.find({ userId }).sort({ updatedAt: -1 });
 		const bookingsWithHotelDetails = await Promise.all(
 			bookings.map(async (booking) => {
 				const hotel = await Hotel.findById(booking.hotelId);
@@ -153,7 +153,9 @@ export const getAllBookingsForOwnerId = async (
 		const ownerId = req.auth.userId;
 		const hotels = await Hotel.find({ ownerId });
 		const hotelIds = hotels.map((hotel) => hotel._id);
-		const bookings = await Booking.find({ hotelId: { $in: hotelIds } });
+		const bookings = await Booking.find({ hotelId: { $in: hotelIds } }).sort({
+			updatedAt: -1,
+		});
 		const bookingsWithDetails = await Promise.all(
 			bookings.map(async (booking) => {
 				const hotel = await Hotel.findById(booking.hotelId);
@@ -224,6 +226,7 @@ export const patchBookingStatus = async (
 				timestamp: new Date(),
 			};
 		}
+		booking.updatedAt = new Date();
 		await booking.save();
 
 		res.status(200).json(booking);

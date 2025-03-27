@@ -17,7 +17,7 @@ const hotelSchema = new mongoose.Schema({
 		type: Number,
 		min: 1,
 		max: 5,
-		default: 5
+		default: 5,
 	},
 	reviews: {
 		type: Number,
@@ -75,6 +75,33 @@ const hotelSchema = new mongoose.Schema({
 			required: false,
 		},
 	},
+	createdAt: {
+		type: Date,
+		default: Date.now,
+	},
+	updatedAt: {
+		type: Date,
+		default: Date.now,
+	},
+	deletedAt: {
+		type: Date,
+		default: null,
+	},
+});
+
+hotelSchema.pre("findOneAndUpdate", function (next) {
+	this.set({ updatedAt: new Date() });
+	next();
+});
+
+hotelSchema.pre("updateOne", function (next) {
+	this.set({ updatedAt: new Date() });
+	next();
+});
+
+hotelSchema.pre("save", function (next) {
+	this.set({ updatedAt: new Date() });
+	next();
 });
 
 export default mongoose.model("Hotel", hotelSchema);

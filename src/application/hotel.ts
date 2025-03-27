@@ -81,7 +81,7 @@ export const deleteHotel = async (
 			throw new NotFoundError("Hotel not found");
 		}
 
-		await Hotel.findByIdAndDelete(hotelId);
+		await Hotel.findByIdAndUpdate(hotelId, { updatedAt: new Date() });
 
 		res.status(204).send();
 		return;
@@ -108,6 +108,7 @@ export const updateHotel = async (
 		await Hotel.findByIdAndUpdate(hotelId, {
 			ownerId: user.userId,
 			...updatedHotel.data,
+			updatedAt: new Date(),
 		});
 
 		res.status(200).send();
