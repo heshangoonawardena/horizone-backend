@@ -15,6 +15,7 @@ app.use(express.json());
 app.use(cors());
 
 connectDB();
+const PORT = process.env.PORT || 3000;
 
 app.use("/api/hotels", hotelsRouter);
 app.use("/api/bookings", bookingRouter);
@@ -22,4 +23,4 @@ app.use("/api/favorites", favoritesRouter);
 
 app.use(globalErrorHandlingMiddleware);
 
-app.listen(3000, () => console.log("server listening on port 3000"));
+app.listen(PORT, () => console.log(`server listening on port ${PORT}`));
