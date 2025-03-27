@@ -13,7 +13,7 @@ import { isAdmin } from "./middlewares/authorization-middleware";
 const hotelsRouter = express.Router();
 
 hotelsRouter.route("/").get(getAllHotels).post(createHotel);
-hotelsRouter.route("/owner").get(isAdmin, getHotelsByOwnerId);
+hotelsRouter.route("/owner").get(isAdmin, isAuthenticated, getHotelsByOwnerId);
 hotelsRouter
 	.route("/:id")
 	.get(getHotelById)
