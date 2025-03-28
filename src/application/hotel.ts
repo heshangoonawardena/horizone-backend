@@ -5,6 +5,14 @@ import NotFoundError from "../domain/errors/not-found-error";
 import ValidationError from "../domain/errors/validation-error";
 import Hotel from "../infrastructure/schemas/Hotel";
 
+import OpenAI from "openai";
+const client = new OpenAI();
+
+import { Document } from "@langchain/core/documents";
+import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import mongoose from "mongoose";
+
 export const getAllHotels = async (
 	req: Request,
 	res: Response,
@@ -49,7 +57,7 @@ export const createHotel = async (
 		}
 		const user = req?.auth;
 
-		await Hotel.create({
+		const createdHotel = await Hotel.create({
 			ownerId: user.userId,
 			name: newHotel.data.name,
 			location: newHotel.data.location,
@@ -61,6 +69,26 @@ export const createHotel = async (
 			amenities: newHotel.data?.amenities,
 			contactInfo: newHotel.data.contactInfo,
 		});
+
+		const embeddingsModel = new OpenAIEmbeddings({
+			model: "text-embedding-3-small",
+			apiKey: process.env.OPENAI_API_KEY,
+		});
+
+		const vectorIndex = new MongoDBAtlasVectorSearch(embeddingsModel, {
+			collection: mongoose.connection.collection("hotelVectors"),
+			indexName: "vector_index",
+		});
+
+		const doc = new Document({
+			pageContent: `${createdHotel.description} Located in ${createdHotel.location}. Price per night: ${createdHotel.roomTypes[0].price}`,
+			metadata: {
+				_id: createdHotel._id,
+			},
+		});
+
+		await vectorIndex.addDocuments([doc]);
+
 		res.status(201).send();
 		return;
 	} catch (error) {
@@ -81,7 +109,7 @@ export const deleteHotel = async (
 			throw new NotFoundError("Hotel not found");
 		}
 
-		await Hotel.findByIdAndUpdate(hotelId, { updatedAt: new Date() });
+		await Hotel.findByIdAndDelete(hotelId, { updatedAt: new Date() });
 
 		res.status(204).send();
 		return;
@@ -131,4 +159,43 @@ export const getHotelsByOwnerId = async (
 	} catch (error) {
 		next(error);
 	}
+};
+
+export const generateResponse = async (
+	req: ExpressRequestWithAuth,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { messages } = req.body;
+
+		const openai = new OpenAI({
+			apiKey: process.env.OPENAI_API_KEY,
+		});
+
+		const completion = await openai.chat.completions.create({
+			model: "gpt-4o-mini",
+			messages:
+				messages.length == 1
+					? [
+							{
+								role: "system",
+								content:
+									"First you welcome the user. You are an expert mechanic whose working at a best car repair shop in Wattala, Sri Lanka. You provide answers and troubleshoot when users ask for help with their troubles",
+								...messages,
+							},
+					  ]
+					: messages,
+			store: true,
+		});
+
+		res.status(200).json({
+			messages: [
+				...messages,
+				{ role: "assistant", content: completion.choices[0].message.content },
+			],
+		});
+
+		return;
+	} catch (error) {}
 };
