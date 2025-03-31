@@ -13,9 +13,19 @@ export const retrieve = async (
 		const { query } = req.query;
 
 		if (!query || query === "") {
-			const hotels = (await Hotel.find()).map((hotel) => ({
-				...hotel.toObject(),
-			}));
+			const hotels = (await Hotel.find())
+				.map((hotel) => ({
+					...hotel.toObject(),
+				}))
+				.sort((a, b) => {
+					const priceA = Math.min(
+						...a.roomTypes.map((type: any) => type.price)
+					);
+					const priceB = Math.min(
+						...b.roomTypes.map((type: any) => type.price)
+					);
+					return priceA - priceB;
+				});
 			res.status(200).json(hotels);
 			return;
 		}
@@ -47,7 +57,17 @@ export const retrieve = async (
 				})
 		);
 
-		res.status(200).json(matchedHotels);
+		const sortedHotels = matchedHotels.sort((a, b) => {
+			const priceA = Math.min(
+				...(a.roomTypes ?? []).map((type: any) => type.price)
+			);
+			const priceB = Math.min(
+				...(b.roomTypes ?? []).map((type: any) => type.price)
+			);
+			return priceA - priceB;
+		});
+
+		res.status(200).json(sortedHotels);
 		return;
 	} catch (error) {}
 };
