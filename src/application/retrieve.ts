@@ -10,12 +10,51 @@ export const retrieve = async (
 	next: NextFunction
 ) => {
 	try {
-		const { query } = req.query;
+		const {
+			query,
+			sortBy = "price",
+			order = "asc",
+			minPrice = 0,
+			maxPrice = Infinity,
+		} = req.query;
+
+		const sortHotels = (hotels: any[]) => {
+			return hotels.sort((a, b) => {
+				let valueA, valueB;
+				if (sortBy === "price") {
+					valueA = Math.min(
+						...(a.roomTypes ?? []).map((type: any) => type.price)
+					);
+					valueB = Math.min(
+						...(b.roomTypes ?? []).map((type: any) => type.price)
+					);
+				} else if (sortBy === "rating") {
+					valueA = a.rating ?? 0;
+					valueB = b.rating ?? 0;
+				}
+				return order === "asc" ? valueA - valueB : valueB - valueA;
+			});
+		};
+
+		const filterByPriceRange = (hotels: any[]) => {
+			return hotels.filter((hotel) => {
+				const minRoomPrice = Math.min(
+					...(hotel.roomTypes ?? []).map((type: any) => type.price)
+				);
+				return (
+					minRoomPrice >= Number(minPrice) && minRoomPrice <= Number(maxPrice)
+				);
+			});
+		};
 
 		if (!query || query === "") {
-			const hotels = (await Hotel.find()).map((hotel) => ({
-				...hotel.toObject(),
-			}));
+			const hotels = filterByPriceRange(
+				sortHotels(
+					(await Hotel.find()).map((hotel) => ({
+						...hotel.toObject(),
+					}))
+				)
+			);
 			res.status(200).json(hotels);
 			return;
 		}
@@ -47,7 +86,11 @@ export const retrieve = async (
 				})
 		);
 
-		res.status(200).json(matchedHotels);
+		const sortedAndFilteredHotels = filterByPriceRange(
+			sortHotels(matchedHotels)
+		);
+
+		res.status(200).json(sortedAndFilteredHotels);
 		return;
 	} catch (error) {}
 };
