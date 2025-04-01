@@ -104,7 +104,7 @@ pnpm run start
 
 ## 🤝 Contributing  
 
-We welcome contributions! If you’d like to improve this project, follow these steps:  
+I welcome contributions! If you’d like to improve this project, follow these steps:  
 
 1. **Fork the repository**  
 2. **Create a new branch** (`feature-branch-name`)  
